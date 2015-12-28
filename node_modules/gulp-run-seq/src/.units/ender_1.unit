@@ -1,0 +1,125 @@
+#!/usr/bin/env node
+
+'use strict';
+
+var fs = require('fs');
+var src = '';
+src += fs.readFileSync('../engine.js');
+src += fs.readFileSync('../ender.js');
+
+var load = require('load');
+var loaded = load.compiler(src)
+var Ender = loaded.Ender;
+var SeqEngine = loaded.SeqEngine;
+
+var logno = 0;
+function testcase(fn) {
+  console.log('-- ' + (logno ++) + '.');
+  fn();
+  console.log('--.');
+}
+
+var ender, ender2;
+var cb = function() { console.log('*** Callback.'); }
+var cb0 = function() { console.log('*** Callback - 0.'); }
+var cb1 = function() { console.log('*** Callback - 1.'); }
+var cb2 = function() { console.log('*** Callback - 2.'); }
+var cb3 = function() { console.log('*** Callback - 3.'); }
+
+var gulp = require('gulp');
+for (var i=0; i<10; i++) { gulp.task('task' + i); }
+
+/* ------------------ */
+
+SeqEngine.startTasks(['task0', 'task1'], cb);
+
+testcase(function() {
+  ender = new Ender('task1');
+  SeqEngine.log();
+  ender(cb2);
+  SeqEngine.log();
+});
+
+testcase(function() {
+  ender = new Ender('task0');
+  SeqEngine.log();
+  ender(cb1);
+  SeqEngine.log();
+});
+
+testcase(function() {
+  ender = new Ender('task1');
+  SeqEngine.log();
+  var fn = ender.with(cb1);
+  SeqEngine.log();
+  fn();
+  SeqEngine.log();
+});
+
+SeqEngine.startTasks(['task1', 'task2', 'task3'], cb);
+
+testcase(function() {
+  ender = new Ender('task2');
+  SeqEngine.log();
+  ender.wait('w1',cb1).wait('w2','w3',cb0);
+  SeqEngine.log();
+});
+
+testcase(function() {
+  ender(cb1);
+  SeqEngine.log();
+});
+
+testcase(function() {
+  ender.notify('w3', cb3);
+  SeqEngine.log();
+});
+
+testcase(function() {
+  ender.notify('w1', cb1);
+  SeqEngine.log();
+});
+
+testcase(function() {
+  ender.notify('w2', cb2);
+  SeqEngine.log();
+});
+
+testcase(function() {
+  try {
+    ender.wait('abc', 'xyz', cb0);
+  } catch (e) {
+    console.log('!ERROR:' + e.message);
+    console.log("But it's OK, because it's impossible.");
+  }
+});
+
+testcase(function() {
+  var fn = ender.notifier('abc', cb1);
+  try {
+    fn();
+  } catch (e) {
+    console.log('!ERROR:' + e.message);
+    console.log("But it's OK, because it's impossible.");
+  }
+});
+
+testcase(function() {
+  ender = new Ender('task3');
+  ender.wait('abc', 'xyz', cb0);
+  SeqEngine.log();
+});
+
+testcase(function() {
+  var fn = ender.notifier('abc', cb1);
+  SeqEngine.log();
+  fn();
+  SeqEngine.log();
+});
+
+testcase(function() {
+  var fn = ender.notifier('xyz', cb2);
+  SeqEngine.log();
+  fn();
+  SeqEngine.log();
+});

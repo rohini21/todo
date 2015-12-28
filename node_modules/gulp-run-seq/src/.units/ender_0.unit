@@ -1,0 +1,96 @@
+#!/usr/bin/env node
+
+'use strict';
+
+var fs = require('fs');
+var src = '';
+src += fs.readFileSync('../engine.js');
+src += fs.readFileSync('../ender.js');
+
+var load = require('load');
+var Ender = load.compiler(src).Ender;
+
+var logno = 0;
+function testcase(fn) {
+  console.log('-- ' + (logno ++) + '.');
+  fn();
+  console.log('--.');
+}
+
+var cb0 = function() { console.log('*** Callback - 0.'); }
+var cb1 = function() { console.log('*** Callback - 1.'); }
+var cb2 = function() { console.log('*** Callback - 2.'); }
+var cb3 = function() { console.log('*** Callback - 3.'); }
+
+/* ------------------ */
+
+var ender = new Ender('task0'), ender2;
+
+testcase(function() {
+  console.log(ender);
+});
+
+testcase(function() {
+  ender();
+});
+
+testcase(function() {
+  ender(cb0);
+});
+
+testcase(function() {
+  var fn = ender.with();
+  console.log(fn);
+  fn();
+});
+
+testcase(function() {
+  var fn = ender.with(cb0);
+  console.log(fn);
+  fn(cb1); // --> cb1 is not executed.
+});
+
+testcase(function() {
+  ender2 = ender.wait();
+  console.log(ender2);
+  ender2();
+});
+
+testcase(function() {
+  ender2 = ender.wait(cb0);
+  console.log(ender2);
+  ender2(cb1);
+});
+
+testcase(function() {
+  ender2 = ender.wait('w1','w2','w3',cb2);
+  console.log(ender2);
+  ender2(cb3);
+});
+
+testcase(function() {
+  ender2 = ender.notify('w1');
+  console.log(ender2);
+  ender2();
+});
+
+testcase(function() {
+  ender2 = ender.notify('w1', cb0);
+  console.log(ender2);
+  ender2(cb3);
+});
+
+testcase(function() {
+  var fn = ender.notifier('w1');
+  console.log(fn);
+  fn();
+});
+
+testcase(function() {
+  var fn = ender.notifier('w2', cb1);
+  console.log(fn);
+  fn(cb2); // cb2 is not executed.
+});
+
+
+

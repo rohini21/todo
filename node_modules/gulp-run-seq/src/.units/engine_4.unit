@@ -1,0 +1,44 @@
+#!/usr/bin/env node
+
+'use strict';
+
+var load = require('load');
+var SeqEngine = load('../engine.js').SeqEngine;
+
+var logno = 0;
+function testcase(fn) {
+  console.log('-- log ' + (logno ++) + '.');
+  fn();
+  console.log('--.');
+};
+
+var gulp = require('gulp');
+for (var i=0; i<10; i++) { gulp.task('task' + i); }
+
+var cb = function() { console.log('*** Callback. !!!'); };
+var cb0 = function() { console.log('*** Callback - 0. !!!'); };
+var cb1 = function() { console.log('*** Callback - 1. !!!'); };
+var cb2 = function() { console.log('*** Callback - 2. !!!'); };
+
+// ---------------- //
+
+
+var info = SeqEngine.startTasks(
+  ['task0', 'task0', 'task1', ['task0','task1'], 'task2'], cb
+);
+SeqEngine.log();
+
+testcase(function() {
+  SeqEngine.endTask(info, 'task0', cb0);
+  SeqEngine.log();
+});
+
+testcase(function() {
+  SeqEngine.endTask(info, 'task1', cb1);
+  SeqEngine.log();
+});
+
+testcase(function() {
+  SeqEngine.endTask(info, 'task2', cb2);
+  SeqEngine.log();
+});

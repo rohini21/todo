@@ -1,0 +1,11 @@
+{
+	"headers":{
+		"application_api_key" : "blt9601aa13c191c1a4",
+		"application_uid"		  : "todo"
+	},
+	"path":{
+		"URLPREFIX":"https://api.built.io/v1",
+		"path"		 :"/application/users",
+		"classUid"  :"/classes/tododata/objects"
+	}
+}
